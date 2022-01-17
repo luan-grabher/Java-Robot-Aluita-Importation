@@ -1,14 +1,15 @@
 package aluita_templates.Model;
 
-import Auxiliar.LctoTemplate;
-import Auxiliar.Valor;
 import java.io.File;
 import aluita_templates.Aluita_Templates;
+import fileManager.FileManager;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import main.Arquivo;
+
+import TemplateContabil.Model.Entity.LctoTemplate;
 
 public class RetornoBanco {
 
@@ -49,7 +50,7 @@ public class RetornoBanco {
      */
     private void adicionarRetornos(File arquivo) {
         //Verifica arquivo
-        String textoArquivo = Arquivo.ler(arquivo.getAbsolutePath());
+        String textoArquivo = FileManager.getText(arquivo.getAbsolutePath());
         String[] linhas = textoArquivo.split("\r\n");
 
         //Se tiver no minimo 15 linhas ( baseado em headers e footers)
@@ -74,21 +75,20 @@ public class RetornoBanco {
                                 String doc = linha.substring(0, 10).trim();
                                 String cliente = linha.substring(11, 34).trim();
                                 String vecto = linha.substring(34, 42).trim();
-                                Valor valorDoc = new Valor(linha.substring(42, 52).trim());
-                                Valor valor = new Valor(linha.substring(62, 74).trim());
-                                valor = new Valor(valor.getBigDecimal().toString());//.multiply(new BigDecimal("-1")).toString());
-                                Valor valorJuros = new Valor(linha.substring(52, 62).trim());
+                                //BigDecimal valorDoc = new BigDecimal(linha.substring(42, 52).trim());
+                                BigDecimal valor = new BigDecimal(linha.substring(62, 74).trim());
+                                BigDecimal valorJuros = new BigDecimal(linha.substring(52, 62).trim());
                                 Integer m1 = Integer.valueOf(linha.substring(75, 77).trim());
 
                                 //if(valor.getBigDecimal().compareTo(BigDecimal.ZERO) == 0){
                                 //    valor = new Valor(valorDoc.getString());
                                 //}
                                 //Se o tipo m1 for 17 e o valor não for zerado
-                                if (m1 == 17 && vecto.matches(regexDate2) && valor.getBigDecimal().compareTo(BigDecimal.ZERO) != 0) {
+                                if (m1 == 17 && vecto.matches(regexDate2) && valor.compareTo(BigDecimal.ZERO) != 0) {
                                     lctos.add(new LctoTemplate(data, doc, prefixoCompl, cliente, valor));
 
                                     //Adiciona juros se tiver
-                                    if (valorJuros.getBigDecimal().compareTo(BigDecimal.ZERO) != 0) {
+                                    if (valorJuros.compareTo(BigDecimal.ZERO) != 0) {
                                         juros.add(new LctoTemplate(data, doc, prefixoComplJuros, cliente, valorJuros));
                                     }
                                 }
@@ -126,10 +126,10 @@ public class RetornoBanco {
             textoCsvJuros.append(juro.getHistorico());
 
             textoCsvJuros.append(";");
-            textoCsvJuros.append(juro.getValor().getString());
+            textoCsvJuros.append(juro.getValor());
         }
 
-        Arquivo.salvar(arquivoJuros.getAbsolutePath(), textoCsvJuros.toString());
+        FileManager.save(arquivoJuros.getAbsolutePath(), textoCsvJuros.toString());
     }
 
     private String proximoDiaUtil(String date) {

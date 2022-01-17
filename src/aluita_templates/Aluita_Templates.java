@@ -2,6 +2,8 @@ package aluita_templates;
 
 import Robo.AppRobo;
 import aluita_templates.Model.CriarExtratoBanco;
+import fileManager.Selector;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,13 +18,17 @@ public class Aluita_Templates {
         //app.setArquivoParametros(new File("C:/Users/TI01/Desktop/pp.cfg"));
         //app.setLocalRetorno(new File("C:/Users/TI01/Desktop"));
         
-        app.definirParametros();
-        app.executar(
-                principal(
-                        app.getParametro("mes").getInteger(),
-                        app.getParametro("ano").getInteger()
-                )
-        );
+        try {
+            app.definirParametros();
+            app.executar(
+                    principal(
+                            Integer.getInteger(app.getParametro("mes")),
+                            Integer.getInteger(app.getParametro("ano"))
+                    )
+            );   
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
         System.exit(0);
     }
@@ -37,13 +43,11 @@ public class Aluita_Templates {
                 File pastaEscrituraçãoMensal = new File("\\\\HEIMERDINGER\\docs\\Contábil\\Clientes\\" + pastaEmpresa + "\\Escrituração mensal");
                 File pastaExtratos = new File(pastaEscrituraçãoMensal.getAbsolutePath() + "\\" + ano + "\\Extratos\\" + mesMM + "." + ano);
                 File pastaBancos = new File(pastaExtratos.getAbsolutePath() + "\\Bancos");
-                File arquivoTemplatePadrao = Selector.Pasta.procura_arquivo(pastaEscrituraçãoMensal, "Template;Import;Questor;PADRAO;xlsm");
                 File pastaRetornos = new File(pastaExtratos.getAbsolutePath() + "\\Retorno");
                 File pastaPagamentos = new File(pastaExtratos.getAbsolutePath() + "\\Pagamentos\\PAGFOR");
 
                 CriarExtratoBanco.setPastaEscrituraçãoMensal(pastaEscrituraçãoMensal);
                 CriarExtratoBanco.setPastaBancos(pastaBancos);
-                CriarExtratoBanco.setArquivoTemplatePadrao(arquivoTemplatePadrao);
                 CriarExtratoBanco.setPastaRetornos(pastaRetornos);
                 CriarExtratoBanco.setPastaContasAPagar(pastaPagamentos);
 

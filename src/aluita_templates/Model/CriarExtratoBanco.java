@@ -1,22 +1,24 @@
 package aluita_templates.Model;
 
-import Auxiliar.LctoTemplate;
-import Auxiliar.Valor;
 import java.io.File;
-import OFX.OFX;
-import TemplateContabil.ComparacaoTemplates;
-import TemplateContabil.Template;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import TemplateContabil.Model.ComparacaoTemplates;
+import TemplateContabil.Model.Template;
+import TemplateContabil.Model.Entity.LctoTemplate;
+import TemplateContabil.Model.Entity.OFX;
+import fileManager.Selector;
 
 public class CriarExtratoBanco {
 
     private static File pastaEscrituraçãoMensal;
     private static File pastaBancos;
     private static File pastaRetornos;
-    private static File arquivoTemplatePadrao;
     private static File pastaContasAPagar;
 
     private final int nroEmpresa;
@@ -35,10 +37,6 @@ public class CriarExtratoBanco {
 
     public static void setPastaBancos(File pastaBancos) {
         CriarExtratoBanco.pastaBancos = pastaBancos;
-    }
-
-    public static void setArquivoTemplatePadrao(File arquivoTemplatePadrao) {
-        CriarExtratoBanco.arquivoTemplatePadrao = arquivoTemplatePadrao;
     }
 
     public static void setPastaRetornos(File pastaRetornos) {
@@ -88,7 +86,7 @@ public class CriarExtratoBanco {
 
     public String executar() {
         //Pega Retornos
-        File pastaRetorno = Selector.Pasta.procura_arquivo(pastaRetornos, arquivoBanco, ".");
+        File pastaRetorno = Selector.getFileOnFolder(pastaRetornos, arquivoBanco, ".");
         if (pastaRetorno != null) {
             RetornoBanco retornos = new RetornoBanco(pastaRetorno, nomeBanco, filial);
 
@@ -100,7 +98,7 @@ public class CriarExtratoBanco {
 
             //OFX do banco
             String filtroOFX = arquivoBanco + ";.ofx";
-            File arquivoOFX = Selector.Pasta.procura_arquivo(pastaBancos, filtroOFX);
+            File arquivoOFX = Selector.getFileOnFolder(pastaBancos, filtroOFX);
             if (arquivoOFX != null) {
                 List<LctoTemplate> lctosOFX = OFX.getListaLctos(arquivoOFX);
 
@@ -132,8 +130,9 @@ public class CriarExtratoBanco {
                     todosLctos.addAll(retornos.getLctos());
 
                     //----Coloca no template
-                    File arquivoGeradoTemplate = new File(pastaBancos.getAbsolutePath() + "/" + arquivoTemplatePadrao.getName().replaceAll(".xlsm", " ") + nomeBanco + ".xlsm");
-                    Template template = new Template(mes, ano, arquivoTemplatePadrao, arquivoGeradoTemplate, nroEmpresa, filial, 51, 61, nroBanco, todosLctos);
+                    //New file in pastaBancos with name 'Template Aluita ' + nomeBanco + ' ' + mes + ' ' + ano + '.xlsm'
+                    File new_template = new File(pastaBancos, "Template Aluita " + nomeBanco + " " + mes + " " + ano + ".xlsm");
+                    Template template = new Template(mes, ano, new_template, "aluita" + nroBanco, todosLctos);
 
                     return comparacaoContasComFornecedores + "<br>" + comparacaoLiquidacoesComRetornos;
                 } else {
@@ -149,21 +148,24 @@ public class CriarExtratoBanco {
 
     private boolean dataEstaNoMes(String data) {
         try {
-            Valor valorData = new Valor(data);
-            if(valorData.éUmaDataValida()){
-                Calendar cal = valorData.getCalendar();
-                return (cal.get(Calendar.MONTH) + 1) == mes && cal.get(Calendar.YEAR) == ano;
-            }else{
-                return false;
-            }
+            //validade the date string
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            Date date = sdf.parse(data);
+            
+            //get the calendar instance
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+
+            return (cal.get(Calendar.MONTH) + 1) == mes && cal.get(Calendar.YEAR) == ano;
         } catch (Exception e) {
             return false;
         }
     }
 
-    private static boolean containsAny(String str, String[] listStr) {
-        for (String string : listStr) {
-            if (str.toUpperCase().contains(string.toUpperCase())) {
+    //function containsAny to return if any of the strings in the array are contained in the string
+    private boolean containsAny(String string, String[] array) {
+        for (String s : array) {
+            if (string.contains(s)) {
                 return true;
             }
         }

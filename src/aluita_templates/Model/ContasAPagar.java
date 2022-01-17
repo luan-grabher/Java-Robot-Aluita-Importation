@@ -1,10 +1,10 @@
 package aluita_templates.Model;
 
-import Auxiliar.LctoTemplate;
-import Auxiliar.Valor;
 import java.io.File;
 import java.io.FileInputStream;
 import JExcel.JExcel;
+import TemplateContabil.Model.Entity.LctoTemplate;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,30 +79,34 @@ public class ContasAPagar {
                         //Atualiza data atual
                         String celA = JExcel.getStringCell(row.getCell(0));
                         if (celA.toLowerCase().contains("liquida") && celA.contains(":")) {
-                            dataAtual = new Valor(celA).getNumbersList("/").get(0);
+                            //var dataAtual = celA only numbers and . and / and : and - and  ,
+                            dataAtual = celA.replaceAll("[^0-9\\.\\/\\:\\-\\,]", "");
+                            //dataAtual = first index after '/'
+                            dataAtual = dataAtual.substring(dataAtual.indexOf("/") + 1);
                         }
 
                         if (row.getLastCellNum() >= col_Valor + 1) {
 
                             String doc = JExcel.getStringCell(row.getCell(col_Doc)).trim(); //-------- A = doc
                             String data = JExcel.getStringDate(
-                                    new Valor(
+                                        Integer.valueOf(
                                             String.valueOf(
                                                     row.getCell(col_Data).getNumericCellValue()
                                             ).replaceAll("\\.0", "")
-                                    ).getInteger()
+                                        )
                             );//-------- G = data
                             String fornecedor = row.getCell(col_Fornecedor).getStringCellValue().replaceAll("[0-9;.,-]", "").trim();//-------- H = fornecedor
-                            String banco = row.getCell(col_Banco).getStringCellValue().trim();//-------- J = Banco (PAGFOR)
-                            Valor valor = new Valor(String.valueOf(row.getCell(col_Valor).getNumericCellValue()));//-------- P = valor
-                            valor = new Valor(valor.getBigDecimal().multiply(new BigDecimal("-1")).toString());
+                            //String banco = row.getCell(col_Banco).getStringCellValue().trim();//-------- J = Banco (PAGFOR)
+                            BigDecimal valor = new BigDecimal(String.valueOf(row.getCell(col_Valor).getNumericCellValue()));//-------- P = valor
+                            //multiplica por -1 para que o valor seja negativo
+                            valor = valor.multiply(new BigDecimal(-1));
 
                             if (!doc.equals("")
                                     && data.matches(regexDate)
                                     && dataAtual.matches(regexDate)
                                     && !fornecedor.equals("")
                                     //&& banco.equals("PAGFOR")
-                                    && valor.getBigDecimal().compareTo(BigDecimal.ZERO) != 0) {
+                                    && valor.compareTo(BigDecimal.ZERO) != 0) {
                                 lctos.add(new LctoTemplate(dataAtual, doc, prefixoCompl, fornecedor, valor));
                             }
                         }
