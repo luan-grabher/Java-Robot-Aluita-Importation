@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.ini4j.Profile.Section;
+
 import TemplateContabil.Model.Entity.LctoTemplate;
 
 public class RetornoBanco {
@@ -32,7 +34,7 @@ public class RetornoBanco {
     }
 
     private void getLctosFromFiles() {
-        //Lista arquivos TXT
+        //Lista arquivos TXT da pasta
         File[] arquivos = pasta.listFiles((pasta, name) -> name.toLowerCase().endsWith(".txt"));
 
         for (File arquivo : arquivos) {
@@ -101,6 +103,9 @@ public class RetornoBanco {
     }
 
     private void salvarJuros() {
+        Section retornos = Aluita_Templates.ini.get("retornos");
+
+
         File arquivoJuros = new File(pasta.getParentFile().getAbsolutePath() + "\\Retorno JUROS " + nomeBanco + ".csv");
         StringBuilder textoCsvJuros = new StringBuilder();
 
@@ -115,11 +120,11 @@ public class RetornoBanco {
             textoCsvJuros.append(";");
             textoCsvJuros.append(juro.getData());
             textoCsvJuros.append(";");
-            textoCsvJuros.append(154);//deb
+            textoCsvJuros.append(retornos.get("juros_debito"));//deb
             textoCsvJuros.append(";");
-            textoCsvJuros.append(427);//cred
+            textoCsvJuros.append(retornos.get("juros_credito"));//cred
             textoCsvJuros.append(";");
-            textoCsvJuros.append(73);//hist p
+            textoCsvJuros.append(retornos.get("juros_hitorico_padrao"));//hist p
             textoCsvJuros.append(";");
 
             textoCsvJuros.append(juro.getHistorico());
