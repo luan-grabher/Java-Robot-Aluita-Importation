@@ -7,11 +7,13 @@ import TemplateContabil.Model.Entity.Importation;
 import fileManager.FileManager;
 import fileManager.StringFilter;
 import aluita_templates.Model.PagamentoFornecedor;
-
+import aluita_templates.Model.RetornoBanco;
 import TemplateContabil.Model.Entity.LctoTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.ini4j.Profile.Section;
 
 public class Control {
 
@@ -95,4 +97,64 @@ public class Control {
             }                
         }
     }
+
+    //function pastaRetorno extending Executavel receiving imp and name of folder.
+    /**
+     * 
+     * With Aluita_tenplates.ini.get("folders").fetch("retorno"), access subfolder by name in constructor.
+     * Pass to class RetornoBanco and add to importation.
+     * 
+     * @param imp
+     * @param folderName
+     * 
+     */
+    public class pastaRetorno extends Executavel{
+        public Importation imp;
+        public Section config;
+
+        public pastaRetorno(Importation imp, Section config){
+            this.imp = imp;
+            this.config = config;
+        }
+
+        @Override
+        public void run(){
+            //get path of folder pfor with section folders.pagamentos + '\PFOR'
+            String path = Aluita_Templates.ini.get("folders").fetch("retorno") + "\\" + config.fetch("pasta_retorno");
+            //convert to file
+            File folder = new File(path);
+
+            //if folder exists
+            if(folder.exists()){
+                //call to pagamentosFornecedor
+                RetornoBanco ret = new RetornoBanco(folder, imp.getNome());
+
+                //add retornos to importation
+                imp.getLctos().addAll(ret.getLctos());
+            }//else throw new Error
+            else{
+                throw new Error("Pasta '" + path + "' não existe");
+            }
+            
+            //list of lctos to delete
+            List<LctoTemplate> lctos_to_delete = new ArrayList<LctoTemplate>();
+
+            //filter string with config.fetch("retornos_filtros")
+            StringFilter filter = new StringFilter(config.fetch("retornos_filtros"));
+
+            //for each lcto in importation, if filter is filter of string of lcto.getHistorico(), add to list to delete
+            for(LctoTemplate lcto : imp.getLctos()){
+                if(filter.filterOfString(lcto.getHistorico())){
+                    lctos_to_delete.add(lcto);
+                }
+            }
+
+            //for each lcto to delete, remove from importation
+            for(LctoTemplate lcto : lctos_to_delete){
+                imp.getLctos().remove(lcto);
+            }
+            
+        }
+    }
+
 }

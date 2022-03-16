@@ -110,6 +110,8 @@ public class Aluita_Templates {
         }
 
         Map<String, Object> templateConfig = new HashMap<>();
+        //section
+        templateConfig.put("section", section);
         templateConfig.put("nome", ini.get(section, "nome"));
         templateConfig.put("id", ini.get(section, "id"));
         templateConfig.put("filtroArquivo", ini.get(section, "filtroArquivo"));
@@ -200,6 +202,11 @@ public class Aluita_Templates {
         if (templateConfig.get("pforFiltros") != null) {
             String[] pforFiltros = ((String) templateConfig.get("pforFiltros")).split("\\|");
             execs.put("Pagamentos Fornecedor ", (new Control()).new pagamentosFornecedor(importation, pforFiltros));
+        }
+
+        //if has 'pasta_retorno', put Control.pastaRetorno with importation and config.pasta_retorno
+        if (templateConfig.get("pasta_retorno") != null) {
+            execs.put("Pasta de Retorno", (new Control()).new pastaRetorno(importation, ini.get(templateConfig.get("section")) ));
         }
         
 
