@@ -1,104 +1,211 @@
 package aluita_templates;
 
+import Entity.Executavel;
+import JExcel.XLSX;
 import Robo.AppRobo;
-import aluita_templates.Model.CriarExtratoBanco;
-
+import TemplateContabil.Control.ControleTemplates;
+import TemplateContabil.Model.Entity.Importation;
+import fileManager.FileManager;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import org.ini4j.Ini;
 
 public class Aluita_Templates {
 
-    /**
-     * Processo para cada banco:
-     *  - Extrair dados do arquivo OFX
-     *  - Dentro da pasta do contas a pagar:
-     *    - Percorre todos os filtros de arquivos de contas a pagar
-     *      - Percorre todos os arquivos de contas a pagar naquele filtro
-     *        - Percorre todas as linhas do arquivo
-     *          - Se na coluna 'banco' existir o nome do banco, então:
-     *            - Cria um objeto do tipo LctoTemplate
-     */ 
+    /*
+        ok POA 1 e 2 --> Substituir PFOR TIT e PAGTO ELETRON COB por todos os lctos da pasta PFOR
+        BB --> Importar arquivo xlsx
+        Bancos  Bradesco -> Importar OFX, trocar 'LIQUID' por retornos pagos e dos retornos importar separadamente os juros
+        Safra 1 e 2 --> troca os lctos por retornos e gera os juros
+        Banrisul -> Importar ofx, procurar pela data e valor, um lcto com banco 'BERGS' nos arquivos de contas a pagar e adicionar o 'numero' e 'fornecedor' no historico do lcto.
+    */
 
-    public static Integer empresa = 613;
+    private static String nomeApp = "";
+    public static Ini ini = null;
+
+    public static String testParameters = "";
 
     public static void main(String[] args) {
-        AppRobo app = new AppRobo("Aluita Templates");
-        
         try {
-            app.definirParametros();
-
-            System.out.println(app.getParametro("mes"));
-            System.out.println(app.getParametro("ano"));
-
+            AppRobo robo = new AppRobo(nomeApp);
+            robo.definirParametros();
             
-            //Convert 'mes' and 'ano' to integer
-            Integer mes = Integer.parseInt(app.getParametro("mes"));
-            Integer ano = Integer.parseInt(app.getParametro("ano"));
-
-            app.executar(
-                    principal(
-                            mes,
-                            ano                    
-                    )
-            );   
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-        System.exit(0);
-    }
-
-    public static String principal(int mes, int ano) {
-        try {
-            //Verifica parametros
-            if (mes > 0 && mes < 13 && ano > 2017 && ano < 3000) {
-                String mesMM = (mes < 9 ? "0" : "") + mes;
-                //Define pastas
-                String pastaEmpresa = "Aluita Aluminio Porto Alegre Ltda";
-                File pastaEscrituraçãoMensal = new File("\\\\HEIMERDINGER\\docs\\Contábil\\Clientes\\" + pastaEmpresa + "\\Escrituração mensal");
-                
-                //Pasta de Extratos
-                File pastaExtratos = new File(pastaEscrituraçãoMensal.getAbsolutePath() + "\\" + ano + "\\Extratos\\" + mesMM + "." + ano);
-                //Pasta de Movimentos
-                File pastaMovimentos = new File(pastaEscrituraçãoMensal.getAbsolutePath() + "\\" + ano + "\\Movimento\\" + mesMM + "." + ano);
-
-                File pastaBancos = new File(pastaExtratos.getAbsolutePath() + "\\Bancos");
-                File pastaRetornos = new File(pastaMovimentos.getAbsolutePath() + "\\Retorno");
-                File pastaPagamentos = new File(pastaMovimentos.getAbsolutePath() + "\\Pagamentos\\PAGFOR");
-
-                CriarExtratoBanco.setPastaEscrituraçãoMensal(pastaEscrituraçãoMensal);
-                CriarExtratoBanco.setPastaBancos(pastaBancos);
-                CriarExtratoBanco.setPastaRetornos(pastaRetornos);
-                CriarExtratoBanco.setPastaContasAPagar(pastaPagamentos);
-
-                String verificaçãoPastasArquivos = CriarExtratoBanco.verificarPastasArquivos();
-                if (verificaçãoPastasArquivos.equals("")) {
-                    StringBuilder retorno = new StringBuilder();
-                    List<CriarExtratoBanco> listaExtratos = new ArrayList<>();
-
-                    listaExtratos.add(new CriarExtratoBanco(empresa, mes, ano, "POA", "POA", 9, 1, true));
-                    listaExtratos.add(new CriarExtratoBanco(empresa, mes, ano, "CAXIAS", "CAXIAS", 9, 1, false));
-                    listaExtratos.add(new CriarExtratoBanco(empresa, mes, ano, "NH", "NH", 9, 1, false));
-                    listaExtratos.add(new CriarExtratoBanco(empresa, mes, ano, "PELOTAS", "PELOTAS", 5008, 2, false));
-                    listaExtratos.add(new CriarExtratoBanco(empresa, mes, ano, "PASSO FUNDO", "P;FUNDO", 2111, 4, false));
-                    listaExtratos.add(new CriarExtratoBanco(empresa, mes, ano, "SANTA MARIA", "S;MARIA", 2315, 5, false));
-
-                    listaExtratos.forEach((listaExtrato) -> {
-                        retorno.append(listaExtrato.executar());
-                    });
-
-                    return retorno.toString();
-                } else {
-                    return verificaçãoPastasArquivos;
-                }
-            } else {
-                return "[ERRO] Mês ou ano inválidos.";
+            if (args.length > 0 && args[0].equals("test")) {
+                robo.definirParametros(testParameters);
             }
+
+            /* Pega os dados do arquivo ini */
+            String iniPath = "\\\\heimerdinger\\docs\\Informatica\\Programas\\Moresco\\Robos\\Contabilidade\\TemplateImportacao\\";
+            String iniName = robo.getParametro("ini");
+
+            ini = new Ini(FileManager.getFile(iniPath + iniName + ".ini"));
+
+            int mes = Integer.valueOf(robo.getParametro("mes"));
+            mes = mes >= 1 && mes <= 12 ? mes : 1;
+            int ano = Integer.valueOf(robo.getParametro("ano"));
+
+            //with ini4J on section date set month = mes
+            ini.put("date", "month", String.valueOf(mes < 10 ? "0" + mes : mes));
+            ini.put("date", "year", String.valueOf(ano));
+            //save ini
+            ini.store();
+
+            String pastaEmpresa = ini.fetch("Pastas", "empresa");
+            String pastaAnual = ini.fetch("Pastas", "anual");
+            String pastaMensal = ini.fetch("Pastas", "mensal");
+
+            nomeApp = "Importação " + pastaEmpresa + " - " + ini.get("Config", "nome") + " " + mes + "/" + ano;
+
+            StringBuilder returnExecutions = new StringBuilder();
+
+            String[] templates = ini.get("Config", "templates").split(";");
+            //Para cada template pega as informações
+            for (String template : templates) {
+                template = !template.equals("") ? " " + template : "";
+
+                String comparar = template + (template.equals("") ? "" : " ") + "Comparar";
+
+                Map<String, Object> templateConfig = getTemplateConfig(template);
+                Map<String, Object> compararConfig = getTemplateConfig(comparar);
+
+                returnExecutions.append("\n").append(
+                        start(mes, ano, pastaEmpresa, pastaAnual, pastaMensal, templateConfig, compararConfig)
+                );
+            }
+
+            robo.setNome(nomeApp);
+            robo.executar(returnExecutions.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            return "[ERRO] Ocorreu um erro JAVA na aplicação: " + e;
+            FileManager.save(new File(System.getProperty("user.home")) + "\\Desktop\\JavaError.txt", getStackTrace(e));
+            System.out.println("Ocorreu um erro na aplicação: " + e);
+            System.exit(0);
         }
+    }
+
+    private static String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+
+        return sw.toString();
+    }
+
+    /**
+     * Retorna as configurações do template selecionado
+     *
+     * @param template Nome do template na seção ini
+     */
+    private static Map<String, Object> getTemplateConfig(String template) {
+        //define section name
+        String section = "Template" + template;
+
+        //Se não encontrar a seção do template, retorna null
+        if (ini.get(section, "nome") == null) {
+            return null;
+        }
+
+        Map<String, Object> templateConfig = new HashMap<>();
+        templateConfig.put("nome", ini.get(section, "nome"));
+        templateConfig.put("id", ini.get(section, "id"));
+        templateConfig.put("filtroArquivo", ini.get(section, "filtroArquivo"));
+        templateConfig.put("tipo", ini.get(section, "tipo"));
+        templateConfig.put("colunas", getTemplateColsConfig((String) templateConfig.get("tipo"), template));
+        //unir arquivos
+        templateConfig.put("unirArquivos", ini.get(section, "unirArquivos"));
+        //pforFiltros
+        templateConfig.put("pforFiltros", ini.get(section, "pforFiltros"));
+        //pasta_retorno
+        templateConfig.put("pasta_retorno", ini.get(section, "pasta_retorno"));
+
+        return templateConfig;
+    }
+
+    /**
+     * Retorna a configuração de colunas da seção "Colunas NOME-TEMPLATE" no
+     * arquivo ini
+     *
+     * @param template Nome do template na seção ini
+     * @param tipo Tipo do arquivo, para este metodo funcionar deve ser "excel"
+     * @return configuração de colunas da seção "Colunas NOME-TEMPLATE" no
+     * arquivo ini
+     */
+    private static Map<String, Map<String, String>> getTemplateColsConfig(String tipo, String template) {
+        Map<String, Map<String, String>> colunas = new HashMap<>();
+        if (tipo.equals("excel")) {
+            colunas.put("data", getCollumnConfig("data", template));
+            colunas.put("documento", getCollumnConfig("documento", template));
+            colunas.put("pretexto", getCollumnConfig("pretexto", template));
+            colunas.put("historico", getCollumnConfig("historico", template));
+            colunas.put("entrada", getCollumnConfig("entrada", template));
+            colunas.put("saida", getCollumnConfig("saida", template));
+            colunas.put("valor", getCollumnConfig("valor", template));
+            colunas.put("startGet", getCollumnConfig("startGet", template));
+            colunas.put("endGet", getCollumnConfig("endGet", template));
+        }
+
+        return colunas;
+    }
+
+    private static Map<String, String> getCollumnConfig(String collumnName, String template) {
+        return XLSX.getCollumnConfigFromString(collumnName, ini.get("Colunas" + template, collumnName));
+    }
+
+    public static String start(int mes, int ano, String pastaEmpresa, String pastaAnual, String pastaMensal, Map<String, Object> templateConfig, Map<String, Object> compararConfig) {
+        Importation importation = new Importation();
+        importation.setTIPO(templateConfig.get("tipo").equals("excel") ? Importation.TIPO_EXCEL : Importation.TIPO_OFX);
+        importation.setIdTemplateConfig((String) templateConfig.get("id"));
+        importation.setNome((String) templateConfig.get("nome"));
+        importation.getXlsxCols().putAll((Map<String, Map<String, String>>) templateConfig.get("colunas"));
+
+        Importation importationC = null;
+        if (compararConfig != null) {
+            importationC = new Importation();
+            importationC.setTIPO(compararConfig.get("tipo").equals("excel") ? Importation.TIPO_EXCEL : Importation.TIPO_OFX);
+            importationC.setIdTemplateConfig((String) compararConfig.get("id"));
+            importationC.setNome((String) compararConfig.get("nome"));
+            importationC.getXlsxCols().putAll((Map<String, Map<String, String>>) compararConfig.get("colunas"));
+        }
+
+        ControleTemplates controle = new ControleTemplates(mes, ano);
+        controle.setPastaEscMensal(pastaEmpresa);
+        controle.setPasta(pastaAnual, pastaMensal);
+
+        //unir arquivos se necessário
+        if (templateConfig.get("unirArquivos").equals("true")) {
+            //from ini get 'bancos' on section 'folders'
+            String bancosPath = ini.get("Folders", "bancos");            
+
+            //from trmplateconfig get 'filtroArquivo' and replace ';unify' with ''
+            String filtroArquivo = (String) templateConfig.get("filtroArquivo");
+            filtroArquivo = filtroArquivo.replace(";unify", "");
+            filtroArquivo = filtroArquivo + "#unify";
+
+            //cria arquivo com 'unify' no nome + filtro de todos os arquivos com o mesmo nome
+            Control.unirArquivos(bancosPath, filtroArquivo);
+        }
+
+        Map<String, Executavel> execs = new LinkedHashMap<>();
+        execs.put("Procurando arquivo " + templateConfig.get("filtroArquivo"), controle.new defineArquivoNaImportacao((String) templateConfig.get("filtroArquivo"), importation));
+
+        if (compararConfig != null) {
+            execs.put("Procurando arquivo " + compararConfig.get("filtroArquivo"), controle.new defineArquivoNaImportacao((String) compararConfig.get("filtroArquivo"), importation));
+        }
+
+        //if has 'pforFiltros', put Control.pagamentosFornecedor with importation and config.pforFiltros splited by '|'
+        if (templateConfig.get("pforFiltros") != null) {
+            String[] pforFiltros = ((String) templateConfig.get("pforFiltros")).split("\\|");
+            execs.put("Pagamentos Fornecedor ", (new Control()).new pagamentosFornecedor(importation, pforFiltros));
+        }
+        
+
+        execs.put("Criando template " + templateConfig.get("nome"), controle.new converterArquivoParaTemplate(importation, importationC));
+
+        return AppRobo.rodarExecutaveis(nomeApp, execs);
     }
 
 }

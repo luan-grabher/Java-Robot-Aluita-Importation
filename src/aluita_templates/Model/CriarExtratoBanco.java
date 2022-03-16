@@ -91,9 +91,9 @@ public class CriarExtratoBanco {
             RetornoBanco retornos = new RetornoBanco(pastaRetorno, nomeBanco, filial);
 
             //Contas a pagar
-            ContasAPagar contasAPagar = new ContasAPagar(new File("C:/Lugar inexistente")); //Pré inicializa, para ter uma lista zerada
+            PagamentoFornecedor contasAPagar = new PagamentoFornecedor(new File("C:/Lugar inexistente")); //Pré inicializa, para ter uma lista zerada
             if (usarContasAPagar) {
-                contasAPagar = new ContasAPagar(pastaContasAPagar);
+                contasAPagar = new PagamentoFornecedor(pastaContasAPagar);
             }
 
             //OFX do banco

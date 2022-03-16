@@ -19,15 +19,11 @@ public class RetornoBanco {
     private List<LctoTemplate> lctos = new ArrayList<>();
     private List<LctoTemplate> juros = new ArrayList<>();
 
-    private String prefixoCompl = "Liq. Cobr. Fat. nro ";
-    private String prefixoComplJuros = "Juros Liq. Cobr. Fat. nro ";
-
-    public RetornoBanco(File pasta, String nomeBanco, Integer filial) {
+    public RetornoBanco(File pasta, String nomeBanco) {
         this.pasta = pasta;
         this.nomeBanco = nomeBanco;
-        this.filial = filial;
 
-        montarListaLctos();
+        getLctosFromFiles();
         salvarJuros();
     }
 
@@ -35,7 +31,7 @@ public class RetornoBanco {
         return lctos;
     }
 
-    private void montarListaLctos() {
+    private void getLctosFromFiles() {
         //Lista arquivos TXT
         File[] arquivos = pasta.listFiles((pasta, name) -> name.toLowerCase().endsWith(".txt"));
 
@@ -52,6 +48,9 @@ public class RetornoBanco {
         //Verifica arquivo
         String textoArquivo = FileManager.getText(arquivo.getAbsolutePath());
         String[] linhas = textoArquivo.split("\r\n");
+
+        String prefixo = Aluita_Templates.ini.get("retornos", "prefixo");
+        String prefixo_juros = Aluita_Templates.ini.get("retornos", "prefixo_juros");
 
         //Se tiver no minimo 15 linhas ( baseado em headers e footers)
         if (linhas.length > 15) {
@@ -85,11 +84,11 @@ public class RetornoBanco {
                                 //}
                                 //Se o tipo m1 for 17 e o valor não for zerado
                                 if (m1 == 17 && vecto.matches(regexDate2) && valor.compareTo(BigDecimal.ZERO) != 0) {
-                                    lctos.add(new LctoTemplate(data, doc, prefixoCompl, cliente, valor));
+                                    lctos.add(new LctoTemplate(data, doc, prefixo, cliente, valor));
 
                                     //Adiciona juros se tiver
                                     if (valorJuros.compareTo(BigDecimal.ZERO) != 0) {
-                                        juros.add(new LctoTemplate(data, doc, prefixoComplJuros, cliente, valorJuros));
+                                        juros.add(new LctoTemplate(data, doc, prefixo_juros, cliente, valorJuros));
                                     }
                                 }
                             } catch (Exception e) {
@@ -110,7 +109,7 @@ public class RetornoBanco {
 
         for (LctoTemplate juro : juros) {
             textoCsvJuros.append("\r\n");
-            textoCsvJuros.append(Aluita_Templates.empresa);
+            textoCsvJuros.append(Aluita_Templates.ini.get("enterprise", "code"));
             textoCsvJuros.append(";");
             textoCsvJuros.append(filial);
             textoCsvJuros.append(";");

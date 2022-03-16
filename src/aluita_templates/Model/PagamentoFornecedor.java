@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import JExcel.JExcel;
 import TemplateContabil.Model.Entity.LctoTemplate;
+import aluita_templates.Aluita_Templates;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -11,8 +12,9 @@ import java.util.List;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.ini4j.Profile.Section;
 
-public class ContasAPagar {
+public class PagamentoFornecedor {
 
     /*Cfg data*/
     private String dataAtual = "";
@@ -25,14 +27,15 @@ public class ContasAPagar {
     private final String filtroArquivos = ""; // Anteriormente era 'contas a pagar' e o filtro recebido era o nome da filial
 
     /*cfg lançamentos*/
-    private final String prefixoCompl = "Pgto. Dupl. nro ";
-    private final int col_Doc = 0;
-    private final int col_Data = 5;
-    private final int col_Fornecedor = 6;
-    private final int col_Banco = 8;
-    private final int col_Valor = 12;
+    private final Section pfor = Aluita_Templates.ini.get("pagamentos_fornecedor");
+    private final String prefixoCompl = pfor.fetch("prefixo");
+    private final int col_Doc = Integer.valueOf(pfor.fetch("col_Doc"));
+    private final int col_Data = Integer.valueOf(pfor.fetch("col_Data"));
+    private final int col_Fornecedor = Integer.valueOf(pfor.fetch("col_Fornecedor"));
+    private final int col_Banco = Integer.valueOf(pfor.fetch("col_Banco"));
+    private final int col_Valor = Integer.valueOf(pfor.fetch("col_Valor"));
 
-    public ContasAPagar(File localArquivos) {
+    public PagamentoFornecedor(File localArquivos) {
         this.localArquivos = localArquivos;
         this.filtro = "";
 
@@ -41,7 +44,7 @@ public class ContasAPagar {
         }
     }
 
-    public ContasAPagar(File localArquivos, String filtro) {
+    public PagamentoFornecedor(File localArquivos, String filtro) {
         this.localArquivos = localArquivos;
         this.filtro = filtroArquivos + filtro;
 
@@ -50,6 +53,10 @@ public class ContasAPagar {
         }
     }
 
+    /**
+     * Monta a lista de lançamentos a partir dos arquivos de pagamentos
+     * @return Void
+     */
     private void montarListaLctos() {
         //Listar arquivos de contas a pagar
         File[] arquivos = localArquivos.listFiles((localArquivos, name) -> name.toLowerCase().contains(filtro.toLowerCase()));
@@ -123,6 +130,10 @@ public class ContasAPagar {
         }
     }
 
+    /**
+     * Retorna a lista de lançamentos
+     * @return List<LctoTemplate>
+     */
     public List<LctoTemplate> getLctos() {
         return lctos;
     }
