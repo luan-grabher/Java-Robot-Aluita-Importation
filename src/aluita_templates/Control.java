@@ -61,7 +61,7 @@ public class Control {
         @Override
         public void run(){
             //get path of folder pfor with section folders.pagamentos + '\PFOR'
-            String path = Aluita_Templates.ini.get("folders").fetch("pagamentos") + "\\PFOR";
+            String path = Aluita_Templates.ini.get("folders").fetch("pagamentos") + "\\PAGFOR";
             //convert to file
             File folder = new File(path);
 
@@ -121,7 +121,7 @@ public class Control {
         @Override
         public void run(){
             //get path of folder pfor with section folders.pagamentos + '\PFOR'
-            String path = Aluita_Templates.ini.get("folders").fetch("retorno") + "\\" + config.fetch("pasta_retorno");
+            String path = Aluita_Templates.ini.get("folders").fetch("retornos") + "/" + config.fetch("pasta_retorno");
             //convert to file
             File folder = new File(path);
 

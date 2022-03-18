@@ -28,25 +28,25 @@ public class Aluita_Templates {
     private static String nomeApp = "";
     public static Ini ini = null;
 
-    public static String testParameters = "[mes:1][ano:2017][ini:robot-aluita]";
+    public static String testParameters = "[mes:1][ano:2022][ini:robot-aluita]";
 
     public static void main(String[] args) {
         try {
             AppRobo robo = new AppRobo(nomeApp);
-            robo.definirParametros();
-
-            //print args
-            System.out.println("estoy aqui, querendo te");
             
             if (args.length > 0 && args[0].equals("test")) {
                 robo.definirParametros(testParameters);
+            }else{
+                robo.definirParametros();
             }
 
             /* Pega os dados do arquivo ini */
             String iniPath = "\\\\heimerdinger\\docs\\Informatica\\Programas\\Moresco\\Robos\\Contabilidade\\TemplateImportacao\\";
             String iniName = robo.getParametro("ini");
 
-            ini = new Ini(FileManager.getFile(iniPath + iniName + ".ini"));
+            String iniFullPath = iniPath + iniName + ".ini";
+            File iniFile = FileManager.getFile(iniFullPath);
+            ini = new Ini(iniFile);
 
             int mes = Integer.valueOf(robo.getParametro("mes"));
             mes = mes >= 1 && mes <= 12 ? mes : 1;
@@ -184,9 +184,9 @@ public class Aluita_Templates {
         Section templateSection = ini.get(templateConfig.get("section"));
 
         //unir arquivos se necessário
-        if (templateConfig.get("unirArquivos").equals("true")) {
+        if (templateConfig.get("unirArquivos") != null && templateConfig.get("unirArquivos").equals("true")) {
             //from ini get 'bancos' on section 'folders'
-            String bancosPath = ini.get("Folders", "bancos");            
+            String bancosPath = ini.fetch("folders", "bancos");            
 
             //from trmplateconfig get 'filtroArquivo' and replace ';unify' with ''
             String filtroArquivo = (String) templateConfig.get("filtroArquivo");

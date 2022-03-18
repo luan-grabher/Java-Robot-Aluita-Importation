@@ -25,7 +25,7 @@ public class ContasAPagar {
     //function to get lctos from files
     public List<LctoTemplate> getLctos() {
         //section 'contas a pagar' of ini in Aluita_Templates.ini
-        Section cap = Aluita_Templates.ini.get("contas_a_pagar");
+        Section cap = Aluita_Templates.ini.get("contas a pagar");
 
         //get string path in ini file in section 'folders' and data 'pagamentos'
         String pagamentosPath = Aluita_Templates.ini.get("folders").fetch("pagamentos");
