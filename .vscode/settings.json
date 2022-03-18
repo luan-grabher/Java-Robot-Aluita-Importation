@@ -10,5 +10,9 @@
         "exclude": [
             "c:\\Users\\Administrador\\Documents\\Projetos\\Moresco\\FileManager\\dist\\FileManager.jar"
         ]
-    }
+    },
+    "java.project.sourcePaths": [
+        "src",
+        "test/Testes"
+    ]
 }

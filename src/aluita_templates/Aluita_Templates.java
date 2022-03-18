@@ -28,12 +28,15 @@ public class Aluita_Templates {
     private static String nomeApp = "";
     public static Ini ini = null;
 
-    public static String testParameters = "[mes=1][ano=2017]";
+    public static String testParameters = "[mes:1][ano:2017][ini:robot-aluita]";
 
     public static void main(String[] args) {
         try {
             AppRobo robo = new AppRobo(nomeApp);
             robo.definirParametros();
+
+            //print args
+            System.out.println("estoy aqui, querendo te");
             
             if (args.length > 0 && args[0].equals("test")) {
                 robo.definirParametros(testParameters);
