@@ -116,7 +116,7 @@ public class RetornoBanco {
             textoCsvJuros.append("\r\n");
             textoCsvJuros.append(Aluita_Templates.ini.get("enterprise", "code"));
             textoCsvJuros.append(";");
-            textoCsvJuros.append(filial);
+            textoCsvJuros.append("");
             textoCsvJuros.append(";");
             textoCsvJuros.append(juro.getData());
             textoCsvJuros.append(";");

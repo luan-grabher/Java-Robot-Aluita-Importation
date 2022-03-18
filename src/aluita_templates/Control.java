@@ -6,6 +6,7 @@ import Entity.Executavel;
 import TemplateContabil.Model.Entity.Importation;
 import fileManager.FileManager;
 import fileManager.StringFilter;
+import aluita_templates.Model.ContasAPagar;
 import aluita_templates.Model.PagamentoFornecedor;
 import aluita_templates.Model.RetornoBanco;
 import TemplateContabil.Model.Entity.LctoTemplate;
@@ -157,4 +158,52 @@ public class Control {
         }
     }
 
+    //function contasAPagar extending Executavel receiving imp and templateSection to call contasAPagar
+    public class contasAPagar extends Executavel{
+        public Importation imp;
+        public Section config;
+
+        public contasAPagar(Importation imp, Section config){
+            this.imp = imp;
+            this.config = config;
+        }
+
+        @Override
+        public void run(){
+            ContasAPagar contas = new ContasAPagar(config);
+            List<LctoTemplate> contas_lctos = contas.getLctos();
+
+            //lctos to delete
+            List<LctoTemplate> lctos_to_delete = new ArrayList<LctoTemplate>();
+            //lctos to add
+            List<LctoTemplate> lctos_to_add = new ArrayList<LctoTemplate>();
+
+            //for each lcto in importation
+            for(LctoTemplate lcto : imp.getLctos()){
+                //for each conta in contas_lctos
+                for(LctoTemplate conta : contas_lctos){
+                    //if data of lcto is equal to data of conta
+                    if(lcto.getData().equals(conta.getData())){
+                        //if valor of lcto is equal to valor of conta
+                        if(lcto.getValor().compareTo(conta.getValor()) == 0){
+                            //unify complemento historico of lcto and conta on conta complemento historico
+                            conta.setComplementoHistorico(conta.getComplementoHistorico() + " " + lcto.getComplementoHistorico());
+
+                            //lcto to add is conta and lcto to delete is lcto
+                            lctos_to_add.add(conta);
+                            lctos_to_delete.add(lcto);
+                        }
+                    }                    
+                }
+            }
+
+            //for each lcto to delete, remove from importation
+            for(LctoTemplate lcto : lctos_to_delete){
+                imp.getLctos().remove(lcto);
+            }
+
+            //add lctos to importation
+            imp.getLctos().addAll(lctos_to_add);
+        }
+    }
 }

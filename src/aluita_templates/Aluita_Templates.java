@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
 
 public class Aluita_Templates {
 
@@ -27,7 +28,7 @@ public class Aluita_Templates {
     private static String nomeApp = "";
     public static Ini ini = null;
 
-    public static String testParameters = "";
+    public static String testParameters = "[mes=1][ano=2017]";
 
     public static void main(String[] args) {
         try {
@@ -177,6 +178,8 @@ public class Aluita_Templates {
         controle.setPastaEscMensal(pastaEmpresa);
         controle.setPasta(pastaAnual, pastaMensal);
 
+        Section templateSection = ini.get(templateConfig.get("section"));
+
         //unir arquivos se necessário
         if (templateConfig.get("unirArquivos").equals("true")) {
             //from ini get 'bancos' on section 'folders'
@@ -206,9 +209,13 @@ public class Aluita_Templates {
 
         //if has 'pasta_retorno', put Control.pastaRetorno with importation and config.pasta_retorno
         if (templateConfig.get("pasta_retorno") != null) {
-            execs.put("Pasta de Retorno", (new Control()).new pastaRetorno(importation, ini.get(templateConfig.get("section")) ));
+            execs.put("Pasta de Retorno", (new Control()).new pastaRetorno(importation,  templateSection));
         }
-        
+
+        //if templateconfig section on ini has 'contas_a_pagar_coluna' and 'contas_a_pagar_filtro', put Control.contasapagar
+        if(templateSection.containsKey("contas_a_pagar_coluna") && templateSection.containsKey("contas_a_pagar_filtro")){
+            execs.put("Contas a Pagar", (new Control()).new contasAPagar(importation, templateSection));
+        }
 
         execs.put("Criando template " + templateConfig.get("nome"), controle.new converterArquivoParaTemplate(importation, importationC));
 
