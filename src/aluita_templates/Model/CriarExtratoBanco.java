@@ -27,7 +27,7 @@ public class CriarExtratoBanco {
     private final String nomeBanco;
     private final String arquivoBanco;
     private final int nroBanco;
-    private final int filial;
+
 
     private final boolean usarContasAPagar;
 
@@ -49,6 +49,7 @@ public class CriarExtratoBanco {
 
     public static String verificarPastasArquivos() {
         String r = "";
+
         if (!pastaEscrituraçãoMensal.exists()) {
             r += "\n[ERRO] A pasta " + link("Escrituração Mensal", pastaEscrituraçãoMensal.getAbsolutePath()) + " não existe!";
         }
@@ -73,14 +74,13 @@ public class CriarExtratoBanco {
         return r;
     }
 
-    public CriarExtratoBanco(int nroEmpresa, int mes, int ano, String nomeBanco, String arquivoBanco, int nroBanco, int filial, boolean usarContasAPagar) {
+    public CriarExtratoBanco(int nroEmpresa, int mes, int ano, String nomeBanco, String arquivoBanco, int nroBanco, boolean usarContasAPagar) {
         this.nroEmpresa = nroEmpresa;
         this.mes = mes;
         this.ano = ano;
         this.nomeBanco = nomeBanco;
         this.arquivoBanco = arquivoBanco;
         this.nroBanco = nroBanco;
-        this.filial = filial;
         this.usarContasAPagar = usarContasAPagar;
     }
 
@@ -88,7 +88,7 @@ public class CriarExtratoBanco {
         //Pega Retornos
         File pastaRetorno = Selector.getFileOnFolder(pastaRetornos, arquivoBanco, ".");
         if (pastaRetorno != null) {
-            RetornoBanco retornos = new RetornoBanco(pastaRetorno, nomeBanco, filial);
+            RetornoBanco retornos = new RetornoBanco(pastaRetorno, nomeBanco);
 
             //Contas a pagar
             PagamentoFornecedor contasAPagar = new PagamentoFornecedor(new File("C:/Lugar inexistente")); //Pré inicializa, para ter uma lista zerada
