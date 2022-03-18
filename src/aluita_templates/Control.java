@@ -43,7 +43,7 @@ public class Control {
         }
 
         //name of file is filter replacing ";" with " "
-        String name = "unify " + filtro.replace(";", " ");
+        String name = "unify " + filtro.split("#")[0].replace(";", " ");
         //save file
         FileManager.save(folderFile, name, sb.toString());
     }
