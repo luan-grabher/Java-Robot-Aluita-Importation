@@ -15,6 +15,7 @@ import aluita_templates.Model.RetornoBanco;
 import TemplateContabil.Model.Entity.LctoTemplate;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.ini4j.Profile.Section;
@@ -25,14 +26,36 @@ public class Control {
     public class importImportationLctos extends Executavel {
 
         private final Importation imp;
+        //mes int value
+        private final int mes;
+        //year int value
+        private final int ano;
 
-        public importImportationLctos(Importation imp) {
+        public importImportationLctos(Importation imp, int mes, int ano) {
             this.imp = imp;
+            this.mes = mes;
+            this.ano = ano;
         }
 
         @Override
         public void run() {
             ImportationModel.getLctosFromFile(imp);
+
+            //lctos to delete
+            List<LctoTemplate> lctosToDelete = new ArrayList<>();
+
+            //for each lcto in lctos, if date not is in mes and year, remove it
+            for (LctoTemplate lcto : imp.getLctos()) {
+                //convert date to calendar
+                Calendar cal = Dates.Dates.getCalendarFromFormat(lcto.getData(), "dd/MM/yyyy");
+                //if date not is in mes and year, remove it
+                if (cal.get(Calendar.MONTH) + 1 != mes || cal.get(Calendar.YEAR) != ano) {
+                    lctosToDelete.add(lcto);
+                }
+            }
+
+            //remove lctos
+            imp.getLctos().removeAll(lctosToDelete);
         }
     }
 
@@ -138,7 +161,7 @@ public class Control {
 
                 //Comparacao templates pfors with lctos_to_delete
                 String filtersUseds = String.join(" | ", filters).replace(";", " ");
-                String comparation = ComparacaoTemplates.getComparacaoString("Pasta PFOR", "Extrato historico: " + filtersUseds, pfors.getLctos(), lctos_to_delete);
+                String comparation = ComparacaoTemplates.getComparacaoString("Pasta PFOR", "Extrato historico: " + filtersUseds, pfors.getLctos(), lctos_to_delete, );
                 //save comparation on informations if comparation is not empty
                 if(!comparation.isEmpty()){
                     Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);

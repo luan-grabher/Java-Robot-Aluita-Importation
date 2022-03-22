@@ -4,6 +4,7 @@ import Entity.Executavel;
 import JExcel.XLSX;
 import Robo.AppRobo;
 import TemplateContabil.Control.ControleTemplates;
+import TemplateContabil.Model.ComparacaoTemplates;
 import TemplateContabil.Model.Entity.Importation;
 import fileManager.FileManager;
 import java.io.File;
@@ -19,6 +20,10 @@ public class Aluita_Templates {
 
     //map of strings to informations
     public static Map<String, StringBuilder> informations = new HashMap<>();
+
+    //public mes and year
+    public static Integer mes;
+    public static Integer ano;
 
     private static String nomeApp = "";
     public static Ini ini = null;
@@ -43,9 +48,13 @@ public class Aluita_Templates {
             File iniFile = FileManager.getFile(iniFullPath);
             ini = new Ini(iniFile);
 
-            int mes = Integer.valueOf(robo.getParametro("mes"));
+            mes = Integer.valueOf(robo.getParametro("mes"));
             mes = mes >= 1 && mes <= 12 ? mes : 1;
-            int ano = Integer.valueOf(robo.getParametro("ano"));
+            ano = Integer.valueOf(robo.getParametro("ano"));
+
+            //Set mes e ano na comparacao
+            ComparacaoTemplates.setMonth(mes);
+            ComparacaoTemplates.setYear(ano);
 
             //with ini4J on section date set month = mes
             ini.put("date", "month", String.valueOf(mes < 10 ? "0" + mes : mes));
@@ -203,7 +212,7 @@ public class Aluita_Templates {
         }
 
         //call para importar os lctos do arquivo
-        execs.put("Importando Lctos do arquivo " + templateConfig.get("filtroArquivo"), (new Control()).new importImportationLctos(importation));
+        execs.put("Importando Lctos do arquivo " + templateConfig.get("filtroArquivo"), (new Control()).new importImportationLctos(importation, mes, ano));
 
         //if has 'pforFiltros', put Control.pagamentosFornecedor with importation and config.pforFiltros splited by '|'
         if (templateConfig.get("pforFiltros") != null) {
