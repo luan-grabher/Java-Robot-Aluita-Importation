@@ -32,7 +32,7 @@ public class PagamentoFornecedor {
     private final int col_Doc = Integer.valueOf(pfor.fetch("col_Doc"));
     private final int col_Data = Integer.valueOf(pfor.fetch("col_Data"));
     private final int col_Fornecedor = Integer.valueOf(pfor.fetch("col_Fornecedor"));
-    private final int col_Banco = Integer.valueOf(pfor.fetch("col_Banco"));
+    //private final int col_Banco = Integer.valueOf(pfor.fetch("col_Banco"));
     private final int col_Valor = Integer.valueOf(pfor.fetch("col_Valor"));
 
     public PagamentoFornecedor(File localArquivos) {

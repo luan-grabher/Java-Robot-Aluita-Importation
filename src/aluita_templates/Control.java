@@ -3,6 +3,8 @@ package aluita_templates;
 import java.io.File;
 
 import Entity.Executavel;
+import Entity.Warning;
+import TemplateContabil.Model.ComparacaoTemplates;
 import TemplateContabil.Model.ImportationModel;
 import TemplateContabil.Model.Entity.Importation;
 import fileManager.FileManager;
@@ -133,6 +135,15 @@ public class Control {
 
                 //add pagamentos fornecedor to importation
                 imp.getLctos().addAll(pfors.getLctos());
+
+                //Comparacao templates pfors with lctos_to_delete
+                String filtersUseds = String.join(" | ", filters).replace(";", " ");
+                String comparation = ComparacaoTemplates.getComparacaoString("Pasta PFOR", "Extrato historico: " + filtersUseds, pfors.getLctos(), lctos_to_delete);
+                //save comparation on informations if comparation is not empty
+                if(!comparation.isEmpty()){
+                    Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
+                }
+
             }//else throw new Error
             else{
                 throw new Error("Pasta '" + path + "' não existe");
@@ -183,6 +194,9 @@ public class Control {
             //split config.fetch("pasta_retornos") by ";"
             String[] folders = config.fetch("pasta_retorno").split(";");
 
+            //lctos to add
+            List<LctoTemplate> lctos_to_add = new ArrayList<LctoTemplate>();
+
             //for each folder
             for(String folderName : folders){
                 //get path of folder pfor with section folders.pagamentos + '\PFOR'
@@ -195,12 +209,22 @@ public class Control {
                     //Pega retornos da pasta
                     RetornoBanco ret = new RetornoBanco(folder, folderName.replace("RETORNO ", ""));
 
-                    //add retornos to importation
-                    imp.getLctos().addAll(ret.getLctos());
+                    //add retornos to lctos to add
+                    lctos_to_add.addAll(ret.getLctos());
                 }//else throw new Error
                 else{
                     throw new Error("Pasta '" + path + "' não existe");
                 }
+            }
+
+            //add lctos to add to importation
+            imp.getLctos().addAll(lctos_to_add);
+
+            //Comparacao templates retornos with lctos_to_delete
+            String comparation = ComparacaoTemplates.getComparacaoString("Pasta RETORNO", "Extrato historico: " + config.fetch("retornos_filtros").replace(";", " "), lctos_to_add, lctos_to_delete);
+            //save comparation on informations if comparation is not empty
+            if(!comparation.isEmpty()){
+                Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
             }
         }
     }
@@ -251,6 +275,33 @@ public class Control {
 
             //add lctos to importation
             imp.getLctos().addAll(lctos_to_add);
+
+            //Comparacao templates contas a pagar with lctos_to_delete
+            String comparation = ComparacaoTemplates.getComparacaoString("Contas a pagar: " + config.fetch("contas_a_pagar_coluna").replace(";", " "), "Extrato valor e data igual", lctos_to_add, lctos_to_delete);
+            //save comparation on informations if comparation is not empty
+            if(!comparation.isEmpty()){
+                Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
+            }
+        }
+    }
+
+    //class showInformation extending Executavel receiving importation, get Aluita_Templates.information(importation nome) and throw new Warning
+    public class showInformation extends Executavel{
+        public Importation imp;
+
+        public showInformation(Importation imp){
+            this.imp = imp;
+        }
+
+        @Override
+        public void run(){
+            //get informations of importation
+            StringBuilder informations = Aluita_Templates.informations.get(imp.getNome());
+            //if informations is not null
+            if(informations != null && !informations.toString().isEmpty()){
+                //throw new Warning with informations
+                throw new Warning(informations.toString());
+            }   
         }
     }
 }

@@ -17,13 +17,8 @@ import org.ini4j.Profile.Section;
 
 public class Aluita_Templates {
 
-    /*
-        ok POA 1 e 2 --> Substituir PFOR TIT e PAGTO ELETRON COB por todos os lctos da pasta PFOR
-        BB --> Importar arquivo xlsx
-        Bancos  Bradesco -> Importar OFX, trocar 'LIQUID' por retornos pagos e dos retornos importar separadamente os juros
-        Safra 1 e 2 --> troca os lctos por retornos e gera os juros
-        Banrisul -> Importar ofx, procurar pela data e valor, um lcto com banco 'BERGS' nos arquivos de contas a pagar e adicionar o 'numero' e 'fornecedor' no historico do lcto.
-    */
+    //map of strings to informations
+    public static Map<String, StringBuilder> informations = new HashMap<>();
 
     private static String nomeApp = "";
     public static Ini ini = null;
@@ -168,6 +163,9 @@ public class Aluita_Templates {
         importation.setNome((String) templateConfig.get("nome"));
         importation.getXlsxCols().putAll((Map<String, Map<String, String>>) templateConfig.get("colunas"));
 
+        //create informations
+        informations.put(importation.getNome(), new StringBuilder());
+
         Importation importationC = null;
         if (compararConfig != null) {
             importationC = new Importation();
@@ -223,7 +221,10 @@ public class Aluita_Templates {
             execs.put("Contas a Pagar " + templateConfig.get("nome"), (new Control()).new contasAPagar(importation, templateSection));
         }
 
-        execs.put("Criando template " + templateConfig.get("nome"), (new Control()).new convertImportationToTemplate(importation, 0, 0));
+        execs.put("Criando template " + templateConfig.get("nome"), (new Control()).new convertImportationToTemplate(importation, mes, ano));
+
+        //show information
+        execs.put("Informações ", (new Control()).new showInformation(importation));
 
         return AppRobo.rodarExecutaveis(nomeApp, execs);
     }
