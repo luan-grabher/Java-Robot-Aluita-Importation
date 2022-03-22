@@ -204,23 +204,26 @@ public class Aluita_Templates {
             execs.put("Procurando arquivo " + compararConfig.get("filtroArquivo"), controle.new defineArquivoNaImportacao((String) compararConfig.get("filtroArquivo"), importation));
         }
 
+        //call para importar os lctos do arquivo
+        execs.put("Importando Lctos do arquivo " + templateConfig.get("filtroArquivo"), (new Control()).new importImportationLctos(importation));
+
         //if has 'pforFiltros', put Control.pagamentosFornecedor with importation and config.pforFiltros splited by '|'
         if (templateConfig.get("pforFiltros") != null) {
             String[] pforFiltros = ((String) templateConfig.get("pforFiltros")).split("\\|");
-            execs.put("Pagamentos Fornecedor ", (new Control()).new pagamentosFornecedor(importation, pforFiltros));
+            execs.put("Pagamentos Fornecedor " + templateConfig.get("nome"), (new Control()).new pagamentosFornecedor(importation, pforFiltros));
         }
 
         //if has 'pasta_retorno', put Control.pastaRetorno with importation and config.pasta_retorno
         if (templateConfig.get("pasta_retorno") != null) {
-            execs.put("Pasta de Retorno", (new Control()).new pastaRetorno(importation,  templateSection));
+            execs.put("Retornos " + templateConfig.get("nome"), (new Control()).new pastaRetorno(importation,  templateSection));
         }
 
         //if templateconfig section on ini has 'contas_a_pagar_coluna' and 'contas_a_pagar_filtro', put Control.contasapagar
         if(templateSection.containsKey("contas_a_pagar_coluna") && templateSection.containsKey("contas_a_pagar_filtro")){
-            execs.put("Contas a Pagar", (new Control()).new contasAPagar(importation, templateSection));
+            execs.put("Contas a Pagar " + templateConfig.get("nome"), (new Control()).new contasAPagar(importation, templateSection));
         }
 
-        execs.put("Criando template " + templateConfig.get("nome"), controle.new converterArquivoParaTemplate(importation, importationC));
+        execs.put("Criando template " + templateConfig.get("nome"), (new Control()).new convertImportationToTemplate(importation, 0, 0));
 
         return AppRobo.rodarExecutaveis(nomeApp, execs);
     }

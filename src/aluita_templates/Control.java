@@ -3,6 +3,7 @@ package aluita_templates;
 import java.io.File;
 
 import Entity.Executavel;
+import TemplateContabil.Model.ImportationModel;
 import TemplateContabil.Model.Entity.Importation;
 import fileManager.FileManager;
 import fileManager.StringFilter;
@@ -17,6 +18,40 @@ import java.util.List;
 import org.ini4j.Profile.Section;
 
 public class Control {
+
+    //function to import lctos from importation
+    public class importImportationLctos extends Executavel {
+
+        private final Importation imp;
+
+        public importImportationLctos(Importation imp) {
+            this.imp = imp;
+        }
+
+        @Override
+        public void run() {
+            ImportationModel.getLctosFromFile(imp);
+        }
+    }
+
+    //function to convert importation to template
+    public class convertImportationToTemplate extends Executavel {
+
+        private final Importation imp;
+        private final Integer month;
+        private final Integer year;
+
+        public convertImportationToTemplate(Importation imp, Integer month, Integer year) {
+            this.imp = imp;
+            this.month = month;
+            this.year = year;
+        }
+
+        @Override
+        public void run() {
+            ImportationModel.createImportationTemplate(imp, month, year);
+        }
+    }
 
     //static function unirArquivos(String pasta, String filtro)
     public static void unirArquivos(String folder, String filtro){
@@ -52,10 +87,16 @@ public class Control {
     public class pagamentosFornecedor extends Executavel{
         public Importation imp;
         public String[] filters;
+        public List<StringFilter> strFilters = new ArrayList<>();
 
         public pagamentosFornecedor(Importation imp, String[] filters){
             this.imp = imp;
             this.filters = filters;
+            
+            //for each filter, create string filter and put in array
+            for (String filter : filters) {
+                strFilters.add(new StringFilter(filter));
+            }
         }
 
         @Override
@@ -75,10 +116,10 @@ public class Control {
 
                 //for each lcto in importation
                 for(LctoTemplate lcto : imp.getLctos()){
-                    //for each filter
-                    for(String filter : filters){
-                        //if historico contains filter
-                        if(lcto.getHistorico().contains(filter)){
+                    //for each str filter
+                    for (StringFilter strFilter : strFilters) {
+                        //if lcto has filter
+                        if(strFilter.filterOfString(lcto.getHistorico())){
                             //add lcto to list to delete
                             lctos_to_delete.add(lcto);
                         }
@@ -120,23 +161,7 @@ public class Control {
 
         @Override
         public void run(){
-            //get path of folder pfor with section folders.pagamentos + '\PFOR'
-            String path = Aluita_Templates.ini.get("folders").fetch("retornos") + "/" + config.fetch("pasta_retorno");
-            //convert to file
-            File folder = new File(path);
-
-            //if folder exists
-            if(folder.exists()){
-                //call to pagamentosFornecedor
-                RetornoBanco ret = new RetornoBanco(folder, imp.getNome());
-
-                //add retornos to importation
-                imp.getLctos().addAll(ret.getLctos());
-            }//else throw new Error
-            else{
-                throw new Error("Pasta '" + path + "' não existe");
-            }
-            
+            //remove all original retornos lctos
             //list of lctos to delete
             List<LctoTemplate> lctos_to_delete = new ArrayList<LctoTemplate>();
 
@@ -154,7 +179,29 @@ public class Control {
             for(LctoTemplate lcto : lctos_to_delete){
                 imp.getLctos().remove(lcto);
             }
-            
+
+            //split config.fetch("pasta_retornos") by ";"
+            String[] folders = config.fetch("pasta_retorno").split(";");
+
+            //for each folder
+            for(String folderName : folders){
+                //get path of folder pfor with section folders.pagamentos + '\PFOR'
+                String path = Aluita_Templates.ini.get("folders").fetch("retornos") + "/" + folderName;
+                //convert to file
+                File folder = new File(path);
+
+                //if folder exists
+                if(folder.exists()){
+                    //Pega retornos da pasta
+                    RetornoBanco ret = new RetornoBanco(folder, folderName.replace("RETORNO ", ""));
+
+                    //add retornos to importation
+                    imp.getLctos().addAll(ret.getLctos());
+                }//else throw new Error
+                else{
+                    throw new Error("Pasta '" + path + "' não existe");
+                }
+            }
         }
     }
 

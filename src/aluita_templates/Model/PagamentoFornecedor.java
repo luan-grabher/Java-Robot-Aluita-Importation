@@ -87,9 +87,7 @@ public class PagamentoFornecedor {
                         String celA = JExcel.getStringCell(row.getCell(0));
                         if (celA.toLowerCase().contains("liquida") && celA.contains(":")) {
                             //var dataAtual = celA only numbers and . and / and : and - and  ,
-                            dataAtual = celA.replaceAll("[^0-9\\.\\/\\:\\-\\,]", "");
-                            //dataAtual = first index after '/'
-                            dataAtual = dataAtual.substring(dataAtual.indexOf("/") + 1);
+                            dataAtual = celA.split(": ")[1];
                         }
 
                         if (row.getLastCellNum() >= col_Valor + 1) {

@@ -17,7 +17,6 @@ public class RetornoBanco {
 
     private File pasta;
     private String nomeBanco;
-    private Integer filial;
     private List<LctoTemplate> lctos = new ArrayList<>();
     private List<LctoTemplate> juros = new ArrayList<>();
 
@@ -70,15 +69,15 @@ public class RetornoBanco {
                     for (int i = 10; i < linhas.length; i++) {
                         String linha = linhas[i];
 
-                        //Se linah tiver tamanho os suficiente
+                        //Se linha tiver tamanho os suficiente
                         if (linha.length() == 80) {
                             try {
                                 String doc = linha.substring(0, 10).trim();
                                 String cliente = linha.substring(11, 34).trim();
                                 String vecto = linha.substring(34, 42).trim();
                                 //BigDecimal valorDoc = new BigDecimal(linha.substring(42, 52).trim());
-                                BigDecimal valor = new BigDecimal(linha.substring(62, 74).trim());
-                                BigDecimal valorJuros = new BigDecimal(linha.substring(52, 62).trim());
+                                BigDecimal valor = new BigDecimal(linha.substring(62, 74).trim().replace(",", "."));
+                                BigDecimal valorJuros = new BigDecimal(linha.substring(52, 62).trim().replace(",", "."));
                                 Integer m1 = Integer.valueOf(linha.substring(75, 77).trim());
 
                                 //if(valor.getBigDecimal().compareTo(BigDecimal.ZERO) == 0){
