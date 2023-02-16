@@ -3,7 +3,8 @@
         "include": [
             "lib/**/*.jar",
             "c:\\Users\\Administrador\\Documents\\Projetos\\Moresco\\JExcel\\libs/**/*.jar",
-            "c:\\Users\\Administrador\\Documents\\Projetos\\Moresco\\AccountingTemplate\\AccountingTemplate.jar"
+            "c:\\Users\\Administrador\\Documents\\Projetos\\Moresco\\AccountingTemplate\\AccountingTemplate.jar",
+            "e:\\Documents\\Projetos\\Moresco\\AccountingTemplate\\AccountingTemplate.jar"
         ],
         "exclude": [
             "c:\\Users\\Administrador\\Documents\\Projetos\\Moresco\\FileManager\\dist\\FileManager.jar",

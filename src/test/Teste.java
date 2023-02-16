@@ -1,4 +1,4 @@
-package aluita_templates.test;
+package test;
 
 import java.io.File;
 

@@ -161,7 +161,7 @@ public class Control {
 
                 //Comparacao templates pfors with lctos_to_delete
                 String filtersUseds = String.join(" | ", filters).replace(";", " ");
-                String comparation = ComparacaoTemplates.getComparacaoString("Pasta PFOR", "Extrato historico: " + filtersUseds, pfors.getLctos(), lctos_to_delete, );
+                String comparation = ComparacaoTemplates.getComparacaoString("Pasta PFOR", "Extrato historico: " + filtersUseds, pfors.getLctos(), lctos_to_delete );
                 //save comparation on informations if comparation is not empty
                 if(!comparation.isEmpty()){
                     Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
