@@ -91,6 +91,8 @@ public class Aluita_Templates {
                 }
 
                 robo.setNome(nomeApp);
+
+                System.out.println("FIM DA EXECUÇÃO!");
                 robo.executar(returnExecutions.toString());
             } catch (Exception e) {
                 e.printStackTrace();

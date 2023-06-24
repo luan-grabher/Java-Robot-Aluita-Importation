@@ -63,7 +63,8 @@ public class RetornoBanco {
                 String regexDate2 = "\\d{2}\\/\\d{2}\\/\\d{2}";
 
                 if (data.matches(regexDate)) {
-                    data = proximoDiaUtil(data);
+                    //data = proximoDiaUtil(data);
+                    data = diaUtilAnterior(data);
 
                     //Percorre linhas
                     for (int i = 10; i < linhas.length; i++) {
@@ -80,16 +81,17 @@ public class RetornoBanco {
                                 BigDecimal valorJuros = new BigDecimal(linha.substring(52, 62).trim().replace(",", "."));
                                 Integer m1 = Integer.valueOf(linha.substring(75, 77).trim());
 
-                                //if(valor.getBigDecimal().compareTo(BigDecimal.ZERO) == 0){
-                                //    valor = new Valor(valorDoc.getString());
-                                //}
-                                //Se o tipo m1 for 17 e o valor não for zerado
-                                if (m1 == 17 && vecto.matches(regexDate2) && valor.compareTo(BigDecimal.ZERO) != 0) {
-                                    lctos.add(new LctoTemplate(data, doc, prefixo, cliente, valor));
+                                boolean isM1Valido = m1 == 17;
+                                boolean isValorValido = valor.compareTo(BigDecimal.ZERO) != 0;
+                                //boolean isVectoValido = vecto.isEmpty() | vecto.matches(regexDate2);
+                                if (isM1Valido && isValorValido) {
+                                    String historico = cliente + (vecto.isEmpty() ? "" : " - vecto " + vecto);
+
+                                    lctos.add(new LctoTemplate(data, doc, prefixo, historico, valor));
 
                                     //Adiciona juros se tiver
                                     if (valorJuros.compareTo(BigDecimal.ZERO) != 0) {
-                                        juros.add(new LctoTemplate(data, doc, prefixo_juros, cliente, valorJuros));
+                                        juros.add(new LctoTemplate(data, doc, prefixo_juros, historico, valorJuros));
                                     }
                                 }
                             } catch (Exception e) {
@@ -156,6 +158,28 @@ public class RetornoBanco {
             return "01/01/1900";
         }
 
+    }
+
+    private String diaUtilAnterior(String date){
+        try {
+            String[] dateParts = date.split("/");
+            int dia = Integer.valueOf(dateParts[0]);
+            int mes = Integer.valueOf(dateParts[1]);
+            int ano = Integer.valueOf(dateParts[2]);
+            ano = ano < 100 ? 2000 + ano : ano;
+
+            Calendar dateCal = Calendar.getInstance();
+            dateCal.set(ano, mes - 1, dia);
+
+            dateCal.add(Calendar.DAY_OF_MONTH, -1);
+            while (dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+                dateCal.add(Calendar.DAY_OF_MONTH, -1);
+            }
+
+            return dateCal.get(Calendar.DAY_OF_MONTH) + "/" + (dateCal.get(Calendar.MONTH) + 1) + "/" + dateCal.get(Calendar.YEAR);
+        } catch (Exception e) {
+            return "01/01/1900";
+        }
     }
 
 }
