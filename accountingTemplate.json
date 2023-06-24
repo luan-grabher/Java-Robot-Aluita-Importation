@@ -1,0 +1,17 @@
+{
+    "serverName": "heimerdinger",
+
+    "serverPathName" : "docs",
+    "departmentName" : "Informatica",
+    "programsFolderName" : "Programas",
+    "companyName" : "Moresco",
+    
+    "templatesFolderName" : "Moresco-TemplatesConfiguration",
+    "templateFileName" : "Default.xlsm",
+
+    "serverFolder" : "C:/Users/luan/Documents/Projetos/:companyName:/01_PASTAS_TESTE",
+    "templatePath" : ":serverFolder:/:templatesFolderName:/:templateFileName:",
+    
+    "escrituracaoFolder" : "C:/Users/luan/Documents/Projetos/Moresco/01_PASTAS_TESTE/Clientes/:companyFolder:/:ano:/Escrituracao Mensal",
+    "pastaArquivos" : ":escrituracaoFolder:/:pastaAnual:/:mes:.:ano::pastaMensal:"
+}

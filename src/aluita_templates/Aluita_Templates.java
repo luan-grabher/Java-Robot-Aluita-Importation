@@ -28,7 +28,7 @@ public class Aluita_Templates {
     private static String nomeApp = "";
     public static Ini ini = null;
 
-    public static String testParameters = "[mes:1][ano:2022][ini:robot-aluita]";
+    public static String testParameters = "[mes:5][ano:2023][ini:robot-aluita]";
 
     public static void main(String[] args) {
         try {
@@ -180,7 +180,7 @@ public class Aluita_Templates {
     }
 
     public static String start(int mes, int ano, String pastaEmpresa, String pastaAnual, String pastaMensal,
-            Map<String, Object> templateConfig, Map<String, Object> compararConfig) {
+            Map<String, Object> templateConfig, Map<String, Object> compararConfig) throws Exception {
         Importation importation = new Importation();
         importation.setTIPO(templateConfig.get("tipo").equals("excel") ? Importation.TIPO_EXCEL : Importation.TIPO_OFX);
         importation.setIdTemplateConfig((String) templateConfig.get("id"));
@@ -216,8 +216,6 @@ public class Aluita_Templates {
             filtroArquivo = filtroArquivo.replace(";unify", "");
             filtroArquivo = filtroArquivo + "#unify";
 
-            // cria arquivo com 'unify' no nome + filtro de todos os arquivos com o mesmo
-            // nome
             Control.unirArquivos(bancosPath, filtroArquivo);
         }
 
