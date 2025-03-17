@@ -168,7 +168,22 @@ public class Control {
                         "Extrato historico: " + filtersUseds, pfors.getLctos(), lctos_to_delete);
                 // save comparation on informations if comparation is not empty
                 if (!comparation.isEmpty()) {
-                    Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
+                    boolean isDiferencaTotalZero = false;
+
+                    try{
+                        String textoAntesDaTable = comparation.split("<table")[0];
+                        String splitDif = textoAntesDaTable.split("Diferença:")[1];
+                        String splitValor = splitDif.split("R\\$")[1];
+                        String splitValorFinal = splitValor.split("<")[0];
+                        
+                        isDiferencaTotalZero = splitValorFinal.contains("0,00");
+                    } catch (Exception e) {
+                        isDiferencaTotalZero = false;
+                    }
+
+                    if (!isDiferencaTotalZero) {
+                        Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
+                    }
                 }
 
             } // else throw new Error
@@ -249,13 +264,41 @@ public class Control {
             // add lctos to add to importation
             imp.getLctos().addAll(lctos_to_add);
 
+            boolean isSafra = imp.getNome().toLowerCase().contains("safra");
+            String diaDiferenca = isSafra ? " (dia útil anterior)" : " (próximo dia útil)";
+
             // Comparacao templates retornos with lctos_to_delete
-            String comparation = ComparacaoTemplates.getComparacaoString("Pasta RETORNO",
+            String comparation = ComparacaoTemplates.getComparacaoString("Pasta RETORNO" + diaDiferenca,
                     "Extrato historico: " + config.fetch("retornos_filtros").replace(";", " "), lctos_to_add,
                     lctos_to_delete);
-            // save comparation on informations if comparation is not empty
-            if (!comparation.isEmpty()) {
-                Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparation);
+            
+            String comparacaoUTF8;
+            try {
+                comparacaoUTF8 = new String(comparation.getBytes("UTF-8"), "UTF-8");
+            } catch (Exception e) {
+                throw new RuntimeException("UTF-8 encoding is not supported", e);
+            }
+
+            
+            boolean temDiferenca = !comparacaoUTF8.isEmpty();
+            
+            if (temDiferenca) {
+                boolean isDiferencaTotalZero = false;
+
+                try{
+                    String textoAntesDaTable = comparacaoUTF8.split("<table")[0];
+                    String splitDif = textoAntesDaTable.split("Diferença:")[1];
+                    String splitValor = splitDif.split("R\\$")[1];
+                    String splitValorFinal = splitValor.split("<")[0];
+                    
+                    isDiferencaTotalZero = splitValorFinal.contains("0,00");
+                } catch (Exception e) {
+                    isDiferencaTotalZero = false;
+                }
+
+                if (!isDiferencaTotalZero) {
+                    Aluita_Templates.informations.get(imp.getNome()).append("\n").append(comparacaoUTF8);
+                }
             }
         }
     }
