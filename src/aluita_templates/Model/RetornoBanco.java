@@ -47,7 +47,10 @@ public class RetornoBanco {
      */
     private void adicionarRetornos(File arquivo) {
         //Verifica arquivo
-        String textoArquivo = FileManager.getText(arquivo.getAbsolutePath());
+        String pathArquivo = arquivo.getAbsolutePath();
+        boolean isArquivoSafra = pathArquivo.toLowerCase().contains("safra");
+
+        String textoArquivo = FileManager.getText(pathArquivo);
         String[] linhas = textoArquivo.split("\r\n");
 
         String prefixo = Aluita_Templates.ini.get("retornos", "prefixo");
@@ -57,15 +60,19 @@ public class RetornoBanco {
         if (linhas.length > 15) {
             //Se a linha da data tiver no minimo 29 caracteres
             if (linhas[3].length() > 28) {
-                String numero_do_arquivo = linhas[2].substring(19, 29).trim();
+                int lenghtLinhaNumeroArquivo = linhas[2].length();
+                String numero_do_arquivo = linhas[2].substring(19, lenghtLinhaNumeroArquivo).trim();
 
                 String data = linhas[3].substring(19, 29).trim();
                 String regexDate = "\\d{2}\\/\\d{2}\\/\\d{4}";
                 String regexDate2 = "\\d{2}\\/\\d{2}\\/\\d{2}";                
 
                 if (data.matches(regexDate)) {
-                    data = proximoDiaUtil(data);
-                    //data = diaUtilAnterior(data);
+                    if (isArquivoSafra) {
+                        data = diaUtilAnterior(data);
+                    } else {
+                        data = proximoDiaUtil(data);
+                    }
 
                     //Percorre linhas
                     for (int i = 10; i < linhas.length; i++) {
@@ -208,10 +215,16 @@ public class RetornoBanco {
 
             Calendar dateCal = Calendar.getInstance();
             dateCal.set(ano, mes - 1, dia);
-
             dateCal.add(Calendar.DAY_OF_MONTH, -1);
-            while (dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+
+            boolean isFinalDeSemana = dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
+            boolean isFeriado = isFeriado(dateCal.get(Calendar.DAY_OF_MONTH) + "/" + (dateCal.get(Calendar.MONTH) + 1));
+
+            while (isFinalDeSemana || isFeriado) {
                 dateCal.add(Calendar.DAY_OF_MONTH, -1);
+
+                isFinalDeSemana = dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || dateCal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
+                isFeriado = isFeriado(dateCal.get(Calendar.DAY_OF_MONTH) + "/" + (dateCal.get(Calendar.MONTH) + 1));
             }
 
             return dateCal.get(Calendar.DAY_OF_MONTH) + "/" + (dateCal.get(Calendar.MONTH) + 1) + "/" + dateCal.get(Calendar.YEAR);

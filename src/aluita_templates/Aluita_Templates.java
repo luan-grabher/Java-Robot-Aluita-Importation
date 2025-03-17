@@ -28,7 +28,7 @@ public class Aluita_Templates {
     private static String nomeApp = "";
     public static Ini ini = null;
 
-    public static String testParameters = "[mes:9][ano:2024][ini:robot-aluita]";
+    public static String testParameters = "[mes:10][ano:2024][ini:robot-aluita]";
 
     public static void main(String[] args) {
         try {
