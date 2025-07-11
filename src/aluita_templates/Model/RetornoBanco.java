@@ -49,6 +49,7 @@ public class RetornoBanco {
         //Verifica arquivo
         String pathArquivo = arquivo.getAbsolutePath();
         boolean isArquivoSafra = pathArquivo.toLowerCase().contains("safra");
+        boolean isArquivoItau = pathArquivo.toLowerCase().contains("itau");
 
         String textoArquivo = FileManager.getText(pathArquivo);
         String[] linhas = textoArquivo.split("\r\n");
@@ -71,8 +72,12 @@ public class RetornoBanco {
                     if (isArquivoSafra) {
                         data = diaUtilAnterior(data);
                     } else {
-                        data = proximoDiaUtil(data);
+                        if (!isArquivoItau){
+                            data = proximoDiaUtil(data);
+                        }
                     }
+                    
+                    
 
                     //Percorre linhas
                     for (int i = 10; i < linhas.length; i++) {
